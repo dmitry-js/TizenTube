@@ -13,6 +13,35 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 
+app.get('/__debug/runtime', (req, res) => {
+    const modules = {};
+
+    ['http', 'https', 'tls', 'net', 'stream', 'url'].forEach(name => {
+        try {
+            modules[name] = typeof require(name) === 'function';
+        } catch (e) {
+            modules[name] = false;
+        }
+    });
+
+    const http = require('http');
+    const https = require('https');
+
+    res.json({
+        nodeVersion: process.version,
+        platform: process.platform,
+        arch: process.arch,
+        modules,
+        agents: {
+            httpAgent: typeof http.Agent,
+            httpsAgent: typeof https.Agent,
+            httpsRequest: typeof https.request
+        },
+        isTizenTube: Boolean(global.isTizenTube),
+        port: PORT
+    });
+});
+
 const PORT = global.isTizenTube ? 8095 : 8085;
 const apps = {
     "YouTube": {
